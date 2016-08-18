@@ -3,46 +3,69 @@
 
 #include "gsl/gsl.h"
 #include "util/types.hpp"
+#include "util/utils.hpp"
 
-namespace llvm
-{
-class Context;
-class Module;
-class Function;
-class Type;
-}
+#include <vector>
+#include <unordered_map>
 
 namespace jit
 {
+namespace detail
+{
+    class NodeInterface;
+}
+
+class Graph;
 class Node
 {
 public:
-    virtual ~Node() = default;
+    friend class jit::Graph;
+    static void Connect(gsl::not_null<Node*> inNode, int inPort, gsl::not_null<Node*> outNode, int outPort);
 
-    struct SetupParams
-    {
-        llvm::Context& context;
-    };
+    template<typename F>
+    void VisitInputs(F&& func) const;
 
-    struct SetupInputParams
-    {
-        util::small_vector<util::Port, 3> ports;
-    };
+    template<typename F>
+    void VisitOutputs(F&& func) const;
 
-    struct SetupOutputParams
-    {
-        util::small_vector<util::Port, 3> ports;
-    };
+    bool HasInputs() const;
+    bool HasOutputs() const;
 
-    virtual void Setup(const SetupInputParams& inparams, SetupOutputParams& outparams) = 0;
+protected:
+    virtual gsl::not_null<detail::NodeInterface*> GetNodeInterface() = 0;
 
-    struct AssembleFunctionParams
-    {
-        llvm::Module& module;
-    };
-
-    virtual gsl::not_null<llvm::Function*> AssembleFunction(const AssembleFunctionParams& params) = 0;
+private:
+    virtual ~Node() = default; //owned by graph
+    std::unordered_map<int, gsl::not_null<Node*>> mInputs;
+    std::unordered_map<int, std::vector<gsl::not_null<Node*>>> mOutputs;
 };
+
+template<typename F>
+void Node::VisitInputs(F&& func) const
+{
+    for(auto& in: mInputs)
+    {
+        if(!checkReturnIfCan<true>(std::forward<F>(func),in.first, in.second))
+        {
+            return;
+        }
+    }
+}
+
+template<typename F>
+void Node::VisitOutputs(F&& func) const
+{
+    for(auto& out: node->mOutPorts)
+    {
+        for(auto& outNode: out.second)
+        {
+            if(!checkReturnIfCan<true>(std::forward<F>(func),out.first, outNode))
+            {
+                return;
+            }
+        }
+    }
+}
 
 }
 

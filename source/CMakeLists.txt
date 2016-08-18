@@ -13,8 +13,12 @@ include_directories(.)
 
 set(SRC_LIST
     main.cpp
+
+    jit/node.cpp
     jit/mapper.cpp
-    jit/range_mapper.cpp)
+    jit/range_mapper.cpp
+    jit/graph.cpp
+    jit/graph_compiler.cpp)
 
 set(INC_LIST
     gsl/gsl.h
@@ -28,10 +32,15 @@ set(INC_LIST
     util/llvm_warn_push.hpp
     util/llvm_warn_pop.hpp
     util/types.hpp
+    util/utils.hpp
+    util/enforce.hpp
+    util/stream.hpp
 
     jit/node.hpp
     jit/mapper.hpp
-    jit/range_mapper.hpp)
+    jit/range_mapper.hpp
+    jit/graph.hpp
+    jit/graph_compiler.hpp)
 
 add_executable(${PROJECT_NAME} ${SRC_LIST} ${INC_LIST})
 

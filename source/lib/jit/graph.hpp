@@ -26,10 +26,12 @@ public:
     Graph();
 
     template<typename Checker, typename Mapper, typename Processor>
-    inline gsl::not_null<Node*> CreateNode(Checker&& checker, Mapper&& mapper, Processor&& processor);
+    inline NodePtr CreateNode(Checker&& checker, Mapper&& mapper, Processor&& processor);
 
     template<typename F>
     void EnumNodes(F&& func) const;
+
+    size_t GetNodesCount() const;
 
 private:
     struct NodeDeleter final
@@ -77,7 +79,7 @@ public:
 }
 
 template<typename Checker, typename Mapper, typename Processor>
-gsl::not_null<Node*> Graph::CreateNode(Checker&& checker, Mapper&& mapper, Processor&& processor)
+NodePtr Graph::CreateNode(Checker&& checker, Mapper&& mapper, Processor&& processor)
 {
     class NodeImpl : public Node
     {
@@ -101,7 +103,7 @@ void Graph::EnumNodes(F&& func) const
 {
     for(auto& node: mNodes)
     {
-        if(!checkReturnIfCan<true>(std::forward<F>(func),gsl::not_null<Node*>(node)))
+        if(!util::checkReturnIfCan<true>(std::forward<F>(func),NodePtr(node.get())))
         {
             return;
         }

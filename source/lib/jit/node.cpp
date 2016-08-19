@@ -8,7 +8,7 @@
 namespace jit
 {
 
-void Node::Connect(gsl::not_null<Node*> inNode, int inPort, gsl::not_null<Node*> outNode, int outPort)
+void Node::Connect(NodePtr inNode, int inPort, NodePtr outNode, int outPort)
 {
     ENFORCE(inPort  >= 0);
     ENFORCE(outPort >= 0);

@@ -22,7 +22,6 @@ inline void enforce(bool value, Args&&... args)
     if(!value)
     {
         std::stringstream ss;
-        ss << "Enforcement failed: ";
         streamWrite(delimitedStream(ss, ", "), args...);
         throw Exception(ss.str());
     }

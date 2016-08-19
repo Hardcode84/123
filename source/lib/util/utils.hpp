@@ -70,13 +70,13 @@ struct CheckReturnHelper<void>
 template<bool Default, typename F, typename... Args>
 bool checkReturnIfCanImpl(std::integral_constant<bool, true>,F&& func, Args&&... args)
 {
-    return F(std::forward<Args>(args));
+    return func(std::forward<Args>(args)...);
 }
 
 template<bool Default, typename F, typename... Args>
 bool checkReturnIfCanImpl(std::integral_constant<bool, false>,F&& func, Args&&... args)
 {
-    F(std::forward<Args>(args));
+    func(std::forward<Args>(args)...);
     return Default;
 }
 
@@ -85,9 +85,11 @@ bool checkReturnIfCanImpl(std::integral_constant<bool, false>,F&& func, Args&&..
 template<bool Default, typename F, typename... Args>
 bool checkReturnIfCan(F&& func, Args&&... args)
 {
-    return detail::checkReturnIfCanImpl<Default, F, Args>(detail::CheckReturnHelper<decltype(F(std::forward<Args>(args)))>::type(),
-                                                          std::forward<F>(func),
-                                                          std::forward<Args>(args));
+    using RetType = decltype(func(std::forward<Args>(args)...));
+    detail::CheckReturnHelper<RetType>::type tag;
+    return detail::checkReturnIfCanImpl<Default>(tag,
+                                                 std::forward<F>(func),
+                                                 std::forward<Args>(args)...);
 }
 
 } // namespace util
